@@ -54,17 +54,20 @@ void InfixToPostfix(char infix_exp[], char postfix_exp[]) {
     char item;
     char x;
 
-    push('(');                               
-    strcat(infix_exp,")");                  
+    push('(');  // Empuja un '(' al inicio de la pila
+    strcat(infix_exp,")");  // Agrega un ')' al final de la expresión normal
 
     i=0;
     j=0;
-    item=infix_exp[i];         
+    item=infix_exp[i];  // Inicializa el item con el primer carácter de la expresión normal
 
+    // Itera a través de la expresión normal hasta que se encuentre un carácter nulo
     while(item != '\0') {       
         if(item == '(') {
-            push(item);
+            push(item);  // Si el item es '(', lo empuja a la pila
         } else if(isdigit(item)) {
+            // Si el item es un dígito, lo agrega a la expresión postfija
+            // y sigue agregando dígitos hasta que no sea un número
             postfix_exp[j++] = item;              
             while(isdigit(infix_exp[i+1])) {
                 item = infix_exp[++i];
@@ -72,20 +75,26 @@ void InfixToPostfix(char infix_exp[], char postfix_exp[]) {
             }
             postfix_exp[j++] = ' ';
         } else if(is_operator(item) == 1) {       
+            // Si el item es un operador, comprueba si el siguiente carácter también es un operador
+            // Si es así, la expresión normal es inválida
             if(is_operator(infix_exp[i+1])) {
                 printf("\nInvalid infix Expression.\n");        
                 getchar();
                 exit(1);
             }
             x=pop();
+            // Mientras el operador en la cima de la pila tenga mayor o igual precedencia que el item,
+            // lo saca de la pila y lo agrega a la expresión postfija
             while(is_operator(x) == 1 && precedence(x)>= precedence(item)) {
                 postfix_exp[j++] = x;                  
                 postfix_exp[j++] = ' ';
                 x = pop();                       
             }
             push(x);
-            push(item);                 
+            push(item);  // Empuja el item a la pila                 
         } else if(item == ')') {         
+            // Si el item es ')', saca los operadores de la pila y los agrega a la expresión postfija
+            // hasta que se encuentre un '(' en la pila
             x = pop();                   
             while(x != '(') {                
                 postfix_exp[j++] = x;
@@ -93,6 +102,7 @@ void InfixToPostfix(char infix_exp[], char postfix_exp[]) {
                 x = pop();
             }
         } else {                                
+            // Si el item no es un operador, un dígito, '(' o ')', la expresión normal es inválida
             printf("\nInvalid infix Expression.\n");        
             getchar();
             exit(1);
@@ -100,6 +110,9 @@ void InfixToPostfix(char infix_exp[], char postfix_exp[]) {
         i++;
         item = infix_exp[i]; 
     } 
+
+    // Si hay operadores restantes en la pila después de recorrer la expresión normal,
+    // los saca de la pila y los agrega a la expresión postfija
     while(top>0 && stack[top] != '(') {
         postfix_exp[j++] = pop();
         postfix_exp[j++] = ' ';
@@ -107,7 +120,7 @@ void InfixToPostfix(char infix_exp[], char postfix_exp[]) {
     if(top>0 && stack[top] == '(') {
         top--;
     }
-    postfix_exp[j] = '\0'; 
+    postfix_exp[j] = '\0';  // Agrega un carácter nulo al final de la expresión postfija para terminar el string
 }
 
 int evaluatePostfix(char* postfix_exp) {
@@ -120,8 +133,7 @@ int evaluatePostfix(char* postfix_exp) {
     for (int i = 0; postfix_exp[i] != '\0'; i++) {
         ch = postfix_exp[i];
         if (isdigit(ch)) {
-            // Si es un dígito, conviértelo a int y apílalo.
-            // Pero primero verifica si el dígito anterior también era un número.
+            // Si es un dígito,verifica si el dígito anterior también era un número, convierte a int y apila.
             val = (val*10) + (ch - '0');
         } else if (ch == ' ') {
             // Si es un espacio, apila el valor acumulado.
@@ -142,14 +154,15 @@ int evaluatePostfix(char* postfix_exp) {
         }
     }
 
-    // Al final, la pila contiene el resultado.
+   
     return stack[top];
 }
 
 int main() {
     char infix[SIZE], postfix[SIZE];         
     printf("\nEnter Infix expression : ");
-    gets(infix);
+    fgets(infix, SIZE, stdin);
+    infix[strcspn(infix, "\n")] = '\0';
 
     InfixToPostfix(infix,postfix);                   
     printf("Postfix Expression: ");
