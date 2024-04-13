@@ -50,6 +50,18 @@ int precedence(char symbol) {
 }
 
 void InfixToRPN(char infix_exp[], char RPN_exp[]) {
+        // Verifica si la expresión está vacía
+    if(strlen(infix_exp) == 0) {
+        printf("\nInvalid infix Expression. (empty)\n");
+        exit(1);
+    }
+
+    // Verifica si la expresión comienza o termina con un operador
+    if(is_operator(infix_exp[0]) || is_operator(infix_exp[strlen(infix_exp) - 1])) {
+        printf("\nInvalid infix Expression. (operator at the start or end)\n");
+        exit(1);
+    }
+    
     int i, j;
     char item;
     char x;
@@ -75,23 +87,28 @@ void InfixToRPN(char infix_exp[], char RPN_exp[]) {
             }
             RPN_exp[j++] = ' ';
         } else if(is_operator(item) == 1) {       
-            // Si el item es un operador, comprueba si el siguiente carácter también es un operador
-            // Si es así, la expresión normal es inválida
-            if(is_operator(infix_exp[i+1])) {
-                printf("\nInvalid infix Expression.\n");        
-                getchar();
-                exit(1);
-            }
             x=pop();
-            // Mientras el operador en la cima de la pila tenga mayor o igual precedencia que el item,
-            // lo saca de la pila y lo agrega a la expresión postfija
             while(is_operator(x) == 1 && precedence(x)>= precedence(item)) {
                 RPN_exp[j++] = x;                  
                 RPN_exp[j++] = ' ';
                 x = pop();                       
             }
             push(x);
-            push(item);  // Empuja el item a la pila                 
+            push(item); 
+
+            // Verificación adicional para detectar operadores consecutivos
+            if(is_operator(infix_exp[i+1])) {
+                printf("\nInvalid infix Expression(Consecutive Operator).\n");        
+
+                char error_exp[SIZE];
+                strncpy(error_exp, infix_exp, strlen(infix_exp) - 1);  //elimina el parentesis final
+                error_exp[strlen(infix_exp) - 1] = '\0';  
+
+                printf("%s\n", error_exp);
+                printf("%*c\n", i+2, '^');  // Imprime una flecha en la posición del error
+                getchar();
+                exit(1);
+            }           
         } else if(item == ')') {         
             // Si el item es ')', saca los operadores de la pila y los agrega a la expresión postfija
             // hasta que se encuentre un '(' en la pila
@@ -101,15 +118,22 @@ void InfixToRPN(char infix_exp[], char RPN_exp[]) {
                 RPN_exp[j++] = ' ';
                 x = pop();
             }
-        } else {                                
-            // Si el item no es un operador, un dígito, '(' o ')', la expresión normal es inválida
-            printf("\nInvalid infix Expression.\n");        
-            getchar();
-            exit(1);
-        }
+            } else {                                
+                printf("\nInvalid infix Expression.\n");        
+
+                char error_exp[SIZE];
+                strncpy(error_exp, infix_exp, strlen(infix_exp) - 1);   //elimina el parentesis final
+                error_exp[strlen(infix_exp) - 1] = '\0';  
+
+                printf("%s\n", error_exp);
+                printf("%*c\n", i+1, '^');  // Imprime una flecha en la posición del error
+                getchar();
+                exit(1);
+            }
         i++;
         item = infix_exp[i]; 
     } 
+
 
     // Si hay operadores restantes en la pila después de recorrer la expresión normal,
     // los saca de la pila y los agrega a la expresión postfija
@@ -165,11 +189,32 @@ int main() {
     infix[strcspn(infix, "\n")] = '\0';
 
     InfixToRPN(infix,RPN);                   
-    printf("RPN Expression: ");
-    puts(RPN);                     
 
     int result = evaluateRPN(RPN);
-    printf("Result: %d\n", result);
+
+    // Abre el archivo txt
+    FILE *file = fopen("output.txt", "w");
+    if (file == NULL) {
+        printf("Error opening file!\n");
+        return 1;
+    }
+
+    // input sin el paréntesis de cierre ")" al final
+    char input[SIZE];
+    strncpy(input, infix, strlen(infix) - 1);  
+    input[strlen(infix) - 1] = '\0';  
+
+    // Escribe en el archivo
+    fprintf(file, "Input: %s\n", input);
+    fprintf(file, "RPN: %s\n", RPN);
+    fprintf(file, "Resultado: %d\n", result);
+    printf("Input: %s\n", input);
+    printf("RPN: %s\n", RPN);
+    printf("Resultado: %d\n", result);
+
+
+    // Cierra el archivo
+    fclose(file);
 
     return 0;
 }
