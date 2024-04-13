@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <math.h>
 
 #define SIZE 100
 
@@ -174,6 +175,7 @@ int evaluateRPN(char* RPN_exp) {
                 case '-': stack[++top] = A - B; break;
                 case '*': stack[++top] = A * B; break;
                 case '/': stack[++top] = A / B; break;
+                case '^': stack[++top] = pow(A, B); break;
             }
         }
     }
@@ -218,3 +220,11 @@ int main() {
 
     return 0;
 }
+
+// 4+5 
+// 10-5
+// 3*10
+//10/5
+// 4^2
+// 4-2+4^2+3*10/5
+// 2+ 16+6 = 24
